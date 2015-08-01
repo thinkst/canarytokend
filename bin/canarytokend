@@ -1,0 +1,33 @@
+#!/bin/bash
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+PIDFILE="${DIR}/canarytokend.pid"
+TAC="${DIR}/../lib/python2.7/site-packages/canarytokend/canarytokend.tac"
+
+cmd=$1
+
+function usage() {
+    echo -e "\n  Canarytokend v0.1\n"
+    echo -e "\tcanarytokend [ --start | --stop | --config | --help ]\n\n"
+    echo -e "\t\t--start\tStarts the canarytokend process"
+    echo -e "\t\t--stop\tStops the canarytokend process"
+    echo -e "\t\t--config\tCreates a config file at ${HOME}/.canarytokend.conf"
+    echo -e "\t\t--help\tThis help\n"
+
+}
+
+if [ "${cmd}" == "--start" ]; then
+    if [ ! -f ~/.canarytokend.conf -a ! -f canarytokend.conf -a ! -f /etc/canarytokend.conf ]; then
+        echo "[e] No config file found, please create one with \"canarytokend --config\""
+        exit 1
+    fi
+
+    sudo "${DIR}/twistd" -y  "${TAC}" --pidfile "${PIDFILE}" --syslog --prefix=canarytokend
+elif [ "${cmd}" == "--stop" ]; then
+    pid=`sudo cat "${PIDFILE}"`
+    sudo kill "$pid"
+elif [ "${cmd}" == "--config" ]; then
+    sudo "${DIR}/twistd" -noy "${TAC}"
+else
+    usage
+    exit 1
+fi
